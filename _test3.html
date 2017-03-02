@@ -1,0 +1,61 @@
+<html>
+	<head>
+		<title>My first three.js app</title>
+		<style>
+			body { margin: 0; }
+			canvas { width: 100%; height: 100% }
+		</style>
+	</head>
+	<body>
+		<script src="build/three.js"></script>
+		<script src="build/OrbitControls.js"></script>
+		<script>
+
+		//http://stemkoski.github.io/Three.js/HelloWorld.html
+
+		//THREE.MeshLine
+
+			var group;
+			var scene = new THREE.Scene();
+			var camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
+			var renderer = new THREE.WebGLRenderer();
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				document.body.appendChild( renderer.domElement );
+			var orbit = new THREE.OrbitControls( camera, renderer.domElement );
+				orbit.enableZoom = false;
+			var length = 3, width = 50;
+			var shape = new THREE.Shape();
+				shape.moveTo( 0,0 );
+				shape.lineTo( 0, width );
+				shape.lineTo( length, width );
+				shape.lineTo( length, 0 );
+				shape.lineTo( 0, 0 );
+
+			var extrudeSettings = {
+					steps: 1,
+					amount: 90,
+					bevelEnabled: false,
+					bevelThickness: 1,
+					bevelSize: 1,
+					bevelSegments: 1
+				};
+				var cubeMaterialArray = [];
+
+
+			var geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+			
+			var material = new THREE.MeshBasicMaterial( { color: 0xff6600, transparent:true, opacity:0.6 } );
+
+			var mesh = new THREE.Mesh( geometry, material ) ;
+				scene.add( mesh );
+				camera.lookAt(new THREE.Vector3(0, 0, 0));
+				camera.position.set(0, 0, 200);
+			var render = function () {
+				requestAnimationFrame( render );
+				renderer.render(scene, camera);
+			};
+
+			render();
+		</script>
+	</body>
+</html>
