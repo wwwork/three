@@ -8,4 +8,4 @@ Draw the wall (square shape and extrude it) use Three.js and Node.js
 
 running via localhost:3000
 
-
+scr : https://goo.gl/SBIVCc
