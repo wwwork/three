@@ -11,6 +11,7 @@ html(lang='en', ng-app='myBlogApp')
         script(src='/public/js/bootstrap.min.js')
         script(src='/public/js/three.js')
         script(src='/public/js/OrbitControls.js')
+        script(src='/public/js/dat.gui.js')
 
   body
     .container
@@ -24,7 +25,29 @@ html(lang='en', ng-app='myBlogApp')
                 var cameraX = 90;
                 var cameraY = 75; 
                 var cameraZ = 250;  
-               
+                
+                var controls = function () {
+                    this.exportScene = function () {
+                        var exporter = new THREE.SceneExporter();
+                        var sceneJson = JSON.stringify(exporter.parse(scene));
+                        localStorage.setItem('scene', sceneJson);
+                    };
+                    this.clearScene = function () {
+                        scene = new THREE.Scene();
+                    };
+                    this.importScene = function () {
+                        var json = (localStorage.getItem('scene'));
+                        var sceneLoader = new THREE.SceneLoader();
+                        sceneLoader.parse(JSON.parse(json), function (e) {
+                        scene = e.scene;
+                    }, '.');
+                    }
+                };
+                var gui = new dat.GUI();
+                gui.add(controls, "exportScene");
+                gui.add(controls, "clearScene");
+                gui.add(controls, "importScene");
+        
                 var init = function (){
                 renderer.setSize( window.innerWidth, window.innerHeight );
                 renderer.shadowMapEnabled = true;
