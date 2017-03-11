@@ -11,11 +11,16 @@ html(lang='en', ng-app='myBlogApp')
         script(src='/public/js/bootstrap.min.js')
         script(src='/public/js/three.js')
         script(src='/public/js/OrbitControls.js')
+        script(src='/public/js/dat.gui.js')
+        script(src='/public/js/SceneExporter.js')
+        script(src='http://threejs.org/examples/js/loaders/OBJLoader.js')
+        script(src='/public/js/OBJExporter.js')
+        script(src='/public/js/SceneLoader.js')
 
   body
     .container
         script.
-                var renderer, scene, camera, cameraPosition, cameraX, cameraY, cameraZ;
+                var renderer, scene, camera, cameraPosition, cameraX, cameraY, cameraZ, gui, controls, sceneJson, exporter;
                 var renderer = new THREE.WebGLRenderer();
                 var scene = new THREE.Scene();
                 var camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
@@ -24,55 +29,103 @@ html(lang='en', ng-app='myBlogApp')
                 var cameraX = 90;
                 var cameraY = 75; 
                 var cameraZ = 250;  
-               
-                var init = function (){
-                renderer.setSize( window.innerWidth, window.innerHeight );
-                renderer.shadowMapEnabled = true;
-                document.body.appendChild( renderer.domElement );
-                var orbit = new THREE.OrbitControls( camera, renderer.domElement );
-                orbit.enableZoom = false;
-                var length = 3, width = 50;
-                var shape = new THREE.Shape();
-                shape.moveTo( 0,0 );
-                shape.lineTo( 0, width );
-                shape.lineTo( length, width );
-                shape.lineTo( length, 0 );
-                shape.lineTo( 0, 0 );
+                
 
-                var extrudeSettings = {
-                steps: 1,
-                amount: 90,
-                bevelEnabled: false,
-                bevelThickness: 1,
-                bevelSize: 1,
-                bevelSegments: 1
-                };
                 
-                var axes = new THREE.AxisHelper( 20 );
-                scene.add(axes);
-                var planeGeometry = new THREE.PlaneGeometry(160,220);
-                var planeMaterial = new THREE.MeshLambertMaterial({color: 0xcccccc, map: THREE.ImageUtils.loadTexture("/public/images/bricks.jpg")});
-                var plane = new THREE.Mesh(planeGeometry,planeMaterial);
-                plane.rotation.x = -0.5*Math.PI;
-                plane.position.x = 15;
-                plane.position.y = 0;
-                plane.position.z = 0;
-                plane.receiveShadow = true;
-                scene.add(plane);
-                var geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
-                var material = new THREE.MeshLambertMaterial( { color: 0xff6600, transparent:true, opacity:0.6 } );
-                var mesh = new THREE.Mesh( geometry, material ) ;
-                mesh.rotation.y += 0.02;
-                mesh.castShadow = true;
-                scene.add( mesh );
-                //Iwanaseezelight                 
-                var spotLight = new THREE.SpotLight( 0xffffff );
-                spotLight.position.set( 120, 120, 100 );
-                spotLight.castShadow = true;
+        
+                var init = function (){
                 
-                scene.add(spotLight );
-                camera.lookAt(new THREE.Vector3(0, 0, 0));
-                camera.position.set(cameraX, cameraY, cameraZ);
+                    
+                
+                    renderer.setSize( window.innerWidth, window.innerHeight );
+                    renderer.shadowMapEnabled = true;
+                    document.body.appendChild( renderer.domElement );
+                    var orbit = new THREE.OrbitControls( camera, renderer.domElement );
+                    orbit.enableZoom = false;
+                    var length = 3, width = 50;
+                    var shape = new THREE.Shape();
+                    shape.moveTo( 0,0 );
+                    shape.lineTo( 0, width );
+                    shape.lineTo( length, width );
+                    shape.lineTo( length, 0 );
+                    shape.lineTo( 0, 0 );
+
+                    var extrudeSettings = {
+                    steps: 1,
+                    amount: 90,
+                    bevelEnabled: false,
+                    bevelThickness: 1,
+                    bevelSize: 1,
+                    bevelSegments: 1
+                    };
+                    
+                    var axes = new THREE.AxisHelper( 20 );
+                    scene.add(axes);
+                    var planeGeometry = new THREE.PlaneGeometry(160,220);
+                    var planeMaterial = new THREE.MeshLambertMaterial({color: 0xcccccc, map: THREE.ImageUtils.loadTexture("/public/images/bricks.jpg")});
+                    var plane = new THREE.Mesh(planeGeometry,planeMaterial);
+                    plane.rotation.x = -0.5*Math.PI;
+                    plane.position.x = 15;
+                    plane.position.y = 0;
+                    plane.position.z = 0;
+                    plane.receiveShadow = true;
+                    scene.add(plane);
+                    var geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+                    var material = new THREE.MeshLambertMaterial( { color: 0xff6600, transparent:true, opacity:0.6 } );
+                    var mesh = new THREE.Mesh( geometry, material ) ;
+                    mesh.rotation.y += 0.02;
+                    mesh.castShadow = true;
+                    scene.add( mesh );
+                    //Iwanaseezelight                 
+                    var spotLight = new THREE.SpotLight( 0xffffff );
+                    spotLight.position.set( 120, 120, 100 );
+                    spotLight.castShadow = true;
+                    
+                    scene.add(spotLight);
+                    camera.lookAt(new THREE.Vector3(0, 0, 0));
+                    camera.position.set(cameraX, cameraY, cameraZ);
+                    
+                    controls = new function () {
+                        this.exportScene = function () {
+                        
+                            exporter = new THREE.OBJExporter();
+                            result = exporter.parse(scene);
+                        
+                            $.post( "/api/put_scene", {"scene":result})
+                                .done(function( data ) {
+                                    console.log( "Data to SERVER posted and recieved : " + data );
+                            });
+
+                            console.log(result);
+                        
+                        };
+                    this.clearScene = function () {
+                        scene = new THREE.Scene();
+                        console.log('scene cleared');
+                    };
+                    this.importScene = function () {
+                      
+                        var loader = new THREE.OBJLoader();
+                        loader.load('scene.json', function ( object ) {
+                            //object.position.x = - 60;
+                            //object.rotation.x = 20* Math.PI / 180;
+                            //object.rotation.z = 20* Math.PI / 180;
+                            //object.scale.x = 30;
+                            //object.scale.y = 30;
+                            //object.scale.z = 30;
+                            obj = object;    
+                                scene.add( obj );
+                                animate();
+                            });
+                        }
+                    };
+                    gui = new dat.GUI();
+                    gui.add(controls, "exportScene");
+                    gui.add(controls, "clearScene");
+                    gui.add(controls, "importScene");
+                    
+                    
+                    
                 } // end init
                 
                 var render = function () {

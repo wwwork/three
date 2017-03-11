@@ -13,9 +13,9 @@ function dataToJson( data ) {
 } // end dataToJson
 
 
- function writeToJsonFile ( data ){ 
+ function writeToJsonFile ( fn,data ){ 
         
-		fs.writeFile('coord.json', 
+		fs.writeFile(fn, 
 		    
 			dataToJson(data),
             
@@ -58,12 +58,28 @@ function putCoord (req, res){
     // Set our collection
     // If it failed, return error
 	
-	    writeToJsonFile( cords ); 
+	    writeToJsonFile('coord.json', cords ); 
 		res.header("Content-Type", "application/json; charset=utf-8")
 		res.send( cords );
 	    
     
 } // end putCoord
+
+// get scene items from browser
+
+function putScene (req, res){
+    // Set our internal DB variable
+        var scene = JSON.stringify(req.body.scene);
+		    //console.log(scene);
+		    console.log(util.inspect(scene));
+        // If it failed, return error
+	    fs.writeFileSync('scene.json',  scene);
+		
+	    //writeToJsonFile('scene.json', scene ); 
+		
+		res.header("Content-Type", "application/json; charset=utf-8")
+		res.send( scene );
+} // end putScene
 
 router.get('/apiver', function(req, res) {
     res.json({ message: 'welcome to My api ver 0.1! This API Powered by Chuk Norris power' });   
@@ -80,7 +96,8 @@ router.get('/',
 router.get('/api/get_coord', getCoord);
 // put last coord to file
 router.post('/api/put_coord', putCoord);
-
+// put scene_to_serv
+router.post('/api/put_scene', putScene);
 
 
 module.exports = router;
