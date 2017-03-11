@@ -123,19 +123,18 @@ var init = function ()
         var canvas = document.createElement('canvas');
         canvas.setAttribute("id", "canvas");
 
-        var grid = 250;
+        var grid = 300;
         
-        canvas.width = grid;
+        canvas.width = grid*2;
 
-        canvas.height = grid;
+        canvas.height = grid*2;
 
         document.body.appendChild(canvas);
                 
         var ctx = canvas.getContext('2d');
             
         var map = new THREE.Texture(canvas);
-
-                
+				
         // load an image
         var imageObj = new Image();
         
@@ -149,12 +148,11 @@ var init = function ()
             }
         };  
     
-        map.wrapS = THREE.RepeatWrapping;
-        map.wrapT =false;
-        map.anisotropy = 1;
-        map.flipY=false;
+        map.wrapS = map.wrapT = THREE.RepeatWrapping;
 
-        map.repeat.set(1, 1);
+        map.anisotropy = 5;
+
+        map.repeat.set(1, 0.5);
 
         
         
