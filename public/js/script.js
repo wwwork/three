@@ -119,80 +119,51 @@ var init = function ()
          };
 
         var geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
-          
-        var canvas = document.createElement('canvas');
-        canvas.setAttribute("id", "canvas");
-
-        var grid = 800;
-        
-        canvas.width = grid*2;
-
-        canvas.height = grid*2;
-
-        document.body.appendChild(canvas);
-                
-        var ctx = canvas.getContext('2d');
-		           
-        var map = new THREE.Texture(canvas);
-				
-        // load an image
-        var imageObj = new Image();
-        
-        imageObj.src = '/public/images/br.jpg';
-        // after the image is loaded, this function executes
-        imageObj.onload = function()
-        {  
-			//ctx.translate( grid / 2, grid / 2 );
-			ctx.rotate( Math.PI / 2 );
-			ctx.translate( -grid / 5, -grid / 1 );
-			//ctx.drawImage( imageObj, 0, 0, 300, 300);
-            ctx.drawImage(imageObj, 0, 0);
-            if ( map ) {// checks if texture exists
-                map.needsUpdate = true;
-            }
-        };  
-    
-        map.wrapS = map.wrapT = THREE.MirroredRepeatWrapping;
-
-
-        map.anisotropy = 16;
-
-        map.repeat.set(0.01, 0.01);
-
-        
+	
+		// load a texture, set wrap mode to repeat
+		var texture = new THREE.TextureLoader().load( '/public/images/br.jpg' );
+		texture.wrapS = THREE.RepeatWrapping;
+		texture.wrapT = THREE.RepeatWrapping;
+		texture.minFilter = THREE.LinearFilter;
+		
+		//texture.repeat.x = -1;
+		
+		texture.repeat.set( 0.011, 0.011 );
         
     
-        //var material = new THREE.MeshLambertMaterial( { color: 0xff6600, map:draw_texture()} );
-        var material = new THREE.MeshLambertMaterial( { color: 0xffffff, map:map} );
+        //var material = new THREE.MeshLambertMaterial( { color: 0xffffff, map:map} );
+        var material = new THREE.MeshLambertMaterial( { color: 0xffffff, map:texture} );
                            
         var mesh = new THREE.Mesh( geometry, material ) ;
 
                             mesh.rotation.y += 0.02;
 
                             mesh.castShadow = true;
+							
 
                             scene.add( mesh );
                             //Iwanaseezelight                 
-        var lights = [];
+       var lights = [];
         
             lights[ 0 ] = new THREE.PointLight( 0xffffff, 1, 0 );
             
-            lights[ 1 ] = new THREE.PointLight( 0xffffff, 1, 0 );
+            /* lights[ 1 ] = new THREE.PointLight( 0xffffff, 1, 0 );
             
-            lights[ 2 ] = new THREE.PointLight( 0xffffff, 1, 0 );
+            lights[ 2 ] = new THREE.PointLight( 0xffffff, 1, 0 );*/
 
             lights[ 0 ].position.set( 0, 200, 0 );
-            
+            /*
             lights[ 1 ].position.set( 100, 200, 100 );
             
             lights[ 2 ].position.set( - 100, - 200, - 100 );
 
-            
+            */
             scene.add( lights[ 0 ] );
-            
+			
+            /*
             scene.add( lights[ 1 ] );
             
-            scene.add( lights[ 2 ] ); 
+            scene.add( lights[ 2 ] ); */
 
         var spotLight = new THREE.SpotLight( 0xffffff );
 
