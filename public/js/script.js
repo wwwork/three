@@ -18,6 +18,8 @@ var scene = new THREE.Scene();
                 
 var camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
 
+var group = new THREE.Object3D();//create an empty container
+
 var cameraX = 90;
                 
 var cameraY = 75; 
@@ -69,12 +71,18 @@ var init = function ()
                  } );
                      
                 var plane = new THREE.Mesh(planeGeometry,planeMaterial);
-                                    plane.rotation.x = -0.5*Math.PI;
-                                    plane.position.x = 15;
-                                    plane.position.y = 0;
-                                    plane.position.z = 0;
-                                    plane.receiveShadow = true;
-                                    scene.add(plane);
+				
+                plane.rotation.x = -0.5*Math.PI;
+                
+				plane.position.x = 15;
+
+				plane.position.y = 0;
+
+				plane.position.z = 0;
+
+				plane.receiveShadow = true;
+                
+				scene.add(plane);
             },
             // Function called when download progresses
             function ( xhr ) 
@@ -123,15 +131,11 @@ var init = function ()
 		// load a texture, set wrap mode to repeat
 		var texture = new THREE.TextureLoader().load( '/public/images/br.jpg' );
 		texture.wrapS = THREE.RepeatWrapping;
+		
 		texture.wrapT = THREE.RepeatWrapping;
-		texture.minFilter = THREE.LinearFilter;
-		
-		//texture.repeat.x = -1;
-		
+	
 		texture.repeat.set( 0.011, 0.011 );
-        
-    
-        //var material = new THREE.MeshLambertMaterial( { color: 0xffffff, map:map} );
+
         var material = new THREE.MeshLambertMaterial( { color: 0xffffff, map:texture} );
                            
         var mesh = new THREE.Mesh( geometry, material ) ;
@@ -140,30 +144,34 @@ var init = function ()
 
                             mesh.castShadow = true;
 							
+							group.add( mesh );//add a mesh with geometry to it
+                            
+							scene.add( mesh );
+ 
+		var meshNewWall = new THREE.Mesh( geometry, material ) ;
 
-                            scene.add( mesh );
-                            //Iwanaseezelight                 
+                            meshNewWall.rotation.y += 0.02;
+
+                            meshNewWall.castShadow = true;
+							
+							mesh.position.set( -50, 0, -25 );
+							
+							meshNewWall.position.set( 40, 0, -30 );
+							
+							meshNewWall.rotation.y = 17.30;
+							
+							console.log(meshNewWall);
+
+							scene.add( meshNewWall );
        var lights = [];
         
             lights[ 0 ] = new THREE.PointLight( 0xffffff, 1, 0 );
             
-            /* lights[ 1 ] = new THREE.PointLight( 0xffffff, 1, 0 );
-            
-            lights[ 2 ] = new THREE.PointLight( 0xffffff, 1, 0 );*/
-
             lights[ 0 ].position.set( 0, 200, 0 );
-            /*
-            lights[ 1 ].position.set( 100, 200, 100 );
-            
-            lights[ 2 ].position.set( - 100, - 200, - 100 );
 
-            */
             scene.add( lights[ 0 ] );
-			
-            /*
-            scene.add( lights[ 1 ] );
-            
-            scene.add( lights[ 2 ] ); */
+
+           
 
         var spotLight = new THREE.SpotLight( 0xffffff );
 
@@ -175,14 +183,15 @@ var init = function ()
 
                             camera.lookAt(new THREE.Vector3(0, 0, 0));
 
-                            camera.position.set(cameraX, cameraY, cameraZ);
+                            camera.position.set(50, 150, 200);
+                            //camera.position.set(cameraX, cameraY, cameraZ);
                             
                             controls = new function () 
                             {
                                this.exportScene = function () 
                                {
-                                
                                         exporter = new THREE.OBJExporter();
+
                                         result = exporter.parse(scene);
                                     
                                         $.post( "/api/put_scene", {"scene":result})
@@ -191,15 +200,14 @@ var init = function ()
                                         });
 
                                         console.log(result);
-                                
                                 };
                             this.clearScene = function () 
                             {
                                     scene = new THREE.Scene();
+									
                                     console.log('scene cleared');
                             };
                             this.importScene = function () {
-                              
                                 
         var loader = new THREE.OBJLoader();
                                 loader.load('scene.json', function ( object )
@@ -241,7 +249,7 @@ var render = function ()
                     render();
                 }
                     
-                $( "body" ).mouseup(function() 
+              /*  $( "body" ).mouseup(function() 
                 {
                     // objcoord
                         $.post( "/api/put_coord", { "x": camera.position.x, "y": camera.position.y, "z":camera.position.z })
@@ -252,10 +260,15 @@ var render = function ()
                         });
 
                          console.log('cameraPOS --> '+camera.position.x);
-                    });
-                $( document ).ready( function() {
+                    });*/
+					
+                $( document ).ready( function() 
+					{
+						init();
 
-                                    $.get("/api/get_coord")
+                        animate();
+
+                                  /*  $.get("/api/get_coord")
 
                                      .done(function(data) 
 
@@ -282,5 +295,5 @@ var render = function ()
                                             init();
                                             animate();
 
-                                    })
+                                    })*/
                                   });
