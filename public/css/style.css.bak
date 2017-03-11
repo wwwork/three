@@ -2,7 +2,7 @@ body {
 		font-family: 'Prosto One', cursive;
 }
 
-
+canvas{display:none}
 
 .admin_panel {
 		z-index: 990;
@@ -502,7 +502,7 @@ h4{
 
 .lead {
     font-size: 12px;
-    min-height:70px;
+    min-height:85px;
     max-height:90px;
     overflow:hidden;
 /*    white-space:nowrap;*/

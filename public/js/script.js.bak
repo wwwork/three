@@ -1,15 +1,14 @@
 /*
 TODO
 
-    текстуры на стены
-    http://jsfiddle.net/C5dga/13/
-    рисовать мышкой
+	текстуры на стены
+	рисовать мышкой
 
 */                
-var scene, camera, 
-    cameraPosition, cameraX, 
-    cameraY, cameraZ, gui, 
-    controls, sceneJson, exporter;
+var renderer, scene, camera, 
+                    cameraPosition, cameraX, 
+                    cameraY, cameraZ, gui, 
+                    controls, sceneJson, exporter;
 
                 
 var renderer = new THREE.WebGLRenderer();
@@ -27,7 +26,7 @@ var cameraZ = 250;
 function draw_texture() 
 {
   var canvas = document.createElement('canvas');
-  canvas.width = canvas.height = 256;    
+  canvas.width = canvas.height = 256;	
   var ctx = canvas.getContext('2d');
   ctx.drawImage(document.getElementById('front'), 0, 0);
   var texture = new THREE.Texture(canvas);
@@ -38,15 +37,14 @@ function draw_texture()
 var init = function ()
 {
              renderer.setSize( window.innerWidth, window.innerHeight );
-             
              renderer.shadowMapEnabled = true;
-             
              document.body.appendChild( renderer.domElement );
-        
+                        
         var orbit = new THREE.OrbitControls( camera, renderer.domElement );
-        
         orbit.enableZoom = true;
 
+                    
+                    
         var axes = new THREE.AxisHelper( 20 );
 
         scene.add(axes);
@@ -68,6 +66,9 @@ var init = function ()
                     map: texture
                  } );
                      
+                //var planeMaterial = new THREE.MeshLambertMaterial({color: 0xcccccc, map: eTexture, overdraw: true});
+                //var planeMaterial = new THREE.MeshLambertMaterial({color: 0xcccccc, map: THREE.ImageUtils.loadTexture("/public/images/bricks.jpg")});
+                                    
                 var plane = new THREE.Mesh(planeGeometry,planeMaterial);
                                     plane.rotation.x = -0.5*Math.PI;
                                     plane.position.x = 15;
@@ -90,81 +91,28 @@ var init = function ()
         var length = 3, width = 50;
                         
         var shape = new THREE.Shape();
-                        
                         shape.moveTo( 0,0 );
-                        
                         shape.lineTo( 0, width );
-                        
                         shape.lineTo( length, width );
-                        
                         shape.lineTo( length, 0 );
-                        
                         shape.lineTo( 0, 0 );
 
                         
         var extrudeSettings = {
                         steps: 1,
-                        
                         amount: 90,
-                        
                         bevelEnabled: false,
-                        
                         bevelThickness: 0.5,
-                        
                         bevelSize: 0.5,
-                        
-                        bevelSegments: 8,
-                        
-                        UVGenerator: THREE.ExtrudeGeometry.BoundingBoxUVGenerator
+                        bevelSegments: 8
+						UVGenerator: THREE.ExtrudeGeometry.BoundingBoxUVGenerator
          };
 
         var geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
-          
-        var canvas = document.createElement('canvas');
-        canvas.setAttribute("id", "canvas");
-
-        var grid = 800;
-        
-        canvas.width = grid*2;
-
-        canvas.height = grid*2;
-
-        document.body.appendChild(canvas);
-                
-        var ctx = canvas.getContext('2d');
-		           
-        var map = new THREE.Texture(canvas);
-				
-        // load an image
-        var imageObj = new Image();
-        
-        imageObj.src = '/public/images/br.jpg';
-        // after the image is loaded, this function executes
-        imageObj.onload = function()
-        {  
-			//ctx.translate( grid / 2, grid / 2 );
-			ctx.rotate( Math.PI / 2 );
-			ctx.translate( -grid / 5, -grid / 1 );
-			//ctx.drawImage( imageObj, 0, 0, 300, 300);
-            ctx.drawImage(imageObj, 0, 0);
-            if ( map ) {// checks if texture exists
-                map.needsUpdate = true;
-            }
-        };  
-    
-        map.wrapS = map.wrapT = THREE.MirroredRepeatWrapping;
-
-
-        map.anisotropy = 16;
-
-        map.repeat.set(0.01, 0.01);
-
-        
-        
-    
-        //var material = new THREE.MeshLambertMaterial( { color: 0xff6600, map:draw_texture()} );
-        var material = new THREE.MeshLambertMaterial( { color: 0xffffff, map:map} );
-                           
+                            
+        var material = new THREE.MeshLambertMaterial( { color: 0xff6600,  map:draw_texture()} );
+//        var material = new THREE.MeshLambertMaterial( { color: 0xff6600,  map: THREE.ImageUtils.loadTexture("/public/images/bricks.jpg")} );
+                            
         var mesh = new THREE.Mesh( geometry, material ) ;
 
                             mesh.rotation.y += 0.02;
@@ -173,7 +121,7 @@ var init = function ()
 
                             scene.add( mesh );
                             //Iwanaseezelight                 
-        var lights = [];
+        /*var lights = [];
         
             lights[ 0 ] = new THREE.PointLight( 0xffffff, 1, 0 );
             
@@ -192,7 +140,7 @@ var init = function ()
             
             scene.add( lights[ 1 ] );
             
-            scene.add( lights[ 2 ] ); 
+            scene.add( lights[ 2 ] ); */
 
         var spotLight = new THREE.SpotLight( 0xffffff );
 
