@@ -2,7 +2,7 @@ body {
 		font-family: 'Prosto One', cursive;
 }
 
-
+#canvas{display:none}
 
 .admin_panel {
 		z-index: 990;

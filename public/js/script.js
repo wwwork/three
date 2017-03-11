@@ -1,8 +1,9 @@
 /*
 TODO
 
-	текстуры на стены
-	рисовать мышкой
+    текстуры на стены
+    http://jsfiddle.net/C5dga/13/
+    рисовать мышкой
 
 */                
 var scene, camera, 
@@ -26,7 +27,7 @@ var cameraZ = 250;
 function draw_texture() 
 {
   var canvas = document.createElement('canvas');
-  canvas.width = canvas.height = 256;	
+  canvas.width = canvas.height = 256;    
   var ctx = canvas.getContext('2d');
   ctx.drawImage(document.getElementById('front'), 0, 0);
   var texture = new THREE.Texture(canvas);
@@ -37,14 +38,15 @@ function draw_texture()
 var init = function ()
 {
              renderer.setSize( window.innerWidth, window.innerHeight );
+             
              renderer.shadowMapEnabled = true;
+             
              document.body.appendChild( renderer.domElement );
-                        
+        
         var orbit = new THREE.OrbitControls( camera, renderer.domElement );
+        
         orbit.enableZoom = true;
 
-                    
-                    
         var axes = new THREE.AxisHelper( 20 );
 
         scene.add(axes);
@@ -88,43 +90,77 @@ var init = function ()
         var length = 3, width = 50;
                         
         var shape = new THREE.Shape();
+                        
                         shape.moveTo( 0,0 );
+                        
                         shape.lineTo( 0, width );
+                        
                         shape.lineTo( length, width );
+                        
                         shape.lineTo( length, 0 );
+                        
                         shape.lineTo( 0, 0 );
 
                         
         var extrudeSettings = {
                         steps: 1,
+                        
                         amount: 90,
+                        
                         bevelEnabled: false,
+                        
                         bevelThickness: 0.5,
+                        
                         bevelSize: 0.5,
+                        
                         bevelSegments: 8,
-						UVGenerator: THREE.ExtrudeGeometry.BoundingBoxUVGenerator
+                        
+                        UVGenerator: THREE.ExtrudeGeometry.BoundingBoxUVGenerator
          };
 
         var geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+          
+        var canvas = document.createElement('canvas');
+        canvas.setAttribute("id", "canvas");
 
-		/*var uvs = geometry.faceVertexUvs[0];
+        var grid = 250;
+        
+        canvas.width = grid;
 
-		for (var i = 0; i < uvs.length; i++) {
+        canvas.height = grid;
 
-			uv = uvs[i];
+        document.body.appendChild(canvas);
+                
+        var ctx = canvas.getContext('2d');
+            
+        var map = new THREE.Texture(canvas);
 
-			for (var j = 0; j < uv.length; j++) {
+                
+        // load an image
+        var imageObj = new Image();
+        
+        imageObj.src = '/public/images/br.jpg';
+        // after the image is loaded, this function executes
+        imageObj.onload = function()
+        {  
+            ctx.drawImage(imageObj, 0, 0);
+            if ( map ) {// checks if texture exists
+                map.needsUpdate = true;
+            }
+        };  
+    
+        map.wrapS = THREE.RepeatWrapping;
+        map.wrapT =false;
+        map.anisotropy = 1;
+        map.flipY=false;
 
-				u = uv[j];
+        map.repeat.set(1, 1);
 
-				u.x = (u.x - 150) / 200;
-				u.y = (u.y - 0) / 300;
-
-			}
-		}
-          */
-		  
-        var material = new THREE.MeshLambertMaterial( { color: 0xff6600, ambient: 0xffffff, map:draw_texture()} );
+        
+        
+    
+        //var material = new THREE.MeshLambertMaterial( { color: 0xff6600, map:draw_texture()} );
+        var material = new THREE.MeshLambertMaterial( { color: 0xffffff, map:map} );
                            
         var mesh = new THREE.Mesh( geometry, material ) ;
 
@@ -134,7 +170,7 @@ var init = function ()
 
                             scene.add( mesh );
                             //Iwanaseezelight                 
-        /*var lights = [];
+        var lights = [];
         
             lights[ 0 ] = new THREE.PointLight( 0xffffff, 1, 0 );
             
@@ -153,7 +189,7 @@ var init = function ()
             
             scene.add( lights[ 1 ] );
             
-            scene.add( lights[ 2 ] ); */
+            scene.add( lights[ 2 ] ); 
 
         var spotLight = new THREE.SpotLight( 0xffffff );
 
