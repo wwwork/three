@@ -4,12 +4,16 @@ TODO
     текстуры на стены
     http://jsfiddle.net/C5dga/13/
     рисовать мышкой
-
+	// осталось добавить 4-ре координаты, после 4-й добавить стену с именем wallCount + 1
+	// имопортировать диван
+	// считать все обекты в json
+	
 */                
 var scene, camera, 
     cameraPosition, cameraX, 
     cameraY, cameraZ, gui, 
-    controls, sceneJson, exporter;
+    controls, sceneJson, exporter,
+	meshб wallCount;
 
                 
 var renderer = new THREE.WebGLRenderer();
@@ -18,25 +22,64 @@ var scene = new THREE.Scene();
                 
 var camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
 
-var group = new THREE.Object3D();//create an empty container
-
 var cameraX = 90;
                 
 var cameraY = 75; 
                 
 var cameraZ = 250;  
 
-function draw_texture() 
+var projector, mouse = { x: 0, y: 0 };
+
+var wallHeight = 90;
+				
+var onDocumentMouseDown = function ( event ) 
 {
-  var canvas = document.createElement('canvas');
-  canvas.width = canvas.height = 256;    
-  var ctx = canvas.getContext('2d');
-  ctx.drawImage(document.getElementById('front'), 0, 0);
-  var texture = new THREE.Texture(canvas);
-  texture.needsUpdate = true;
-  return texture;
-} // draw_texture
+						// the following line would stop any other event handler from firing
+						// (such as the mouse's TrackballControls)
+						// event.preventDefault();
+						
+						console.log("Click.");
+						
+						// update the mouse variable
+						mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+						mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+						
+						console.log('mouse.x ' + mouse.x);
+						console.log('mouse.y ' + mouse.y);
+						
+						
+						var meshNewWall = new THREE.Mesh( geometry, material ) ;
+
+									meshNewWall.castShadow = true;
+									
+									mesh.position.set( -50, 0, -25 );
+									
+									meshNewWall.position.set( 40, 0, -30 );
+									
+									console.log('meshNewWall ' + meshNewWall);
+
+									scene.add( meshNewWall );
+						
+												
+						
+						// find intersections
+
+
+} // onDocumentMouseDown
                 
+                
+var render = function () 
+{
+        renderer.render(scene, camera);
+}; //render
+               
+var animate = function () 
+{
+       requestAnimationFrame( animate );
+       render();
+} //animate
+
+	
 var init = function ()
 {
              renderer.setSize( window.innerWidth, window.innerHeight );
@@ -63,7 +106,7 @@ var init = function ()
             // Function when resource is loaded
             function ( texture ) 
             {
-                var planeGeometry = new THREE.PlaneGeometry(160,220);
+                var planeGeometry = new THREE.PlaneGeometry(1000,1000,10, 10);
                 // do something with the texture
                 var planeMaterial = new THREE.MeshLambertMaterial( {
                     color: 0xcccccc, 
@@ -95,9 +138,11 @@ var init = function ()
                 console.log( 'An error happened' );
             }
         );
+
+	
         var length = 3, width = 50;
                         
-        var shape = new THREE.Shape();
+        shape = new THREE.Shape();
                         
                         shape.moveTo( 0,0 );
                         
@@ -113,7 +158,7 @@ var init = function ()
         var extrudeSettings = {
                         steps: 1,
                         
-                        amount: 90,
+                        amount: wallHeight,
                         
                         bevelEnabled: false,
                         
@@ -130,6 +175,7 @@ var init = function ()
 	
 		// load a texture, set wrap mode to repeat
 		var texture = new THREE.TextureLoader().load( '/public/images/br.jpg' );
+		
 		texture.wrapS = THREE.RepeatWrapping;
 		
 		texture.wrapT = THREE.RepeatWrapping;
@@ -137,6 +183,8 @@ var init = function ()
 		texture.repeat.set( 0.011, 0.011 );
 
         var material = new THREE.MeshLambertMaterial( { color: 0xffffff, map:texture} );
+		
+		
                            
         var mesh = new THREE.Mesh( geometry, material ) ;
 
@@ -144,9 +192,10 @@ var init = function ()
 
                             mesh.castShadow = true;
 							
-							group.add( mesh );//add a mesh with geometry to it
-                            
 							scene.add( mesh );
+			
+		
+		//shape.curves.v1.x =50;
  
 		var meshNewWall = new THREE.Mesh( geometry, material ) ;
 
@@ -160,10 +209,10 @@ var init = function ()
 							
 							meshNewWall.rotation.y = 17.30;
 							
-							console.log(meshNewWall);
+							console.log('meshNewWall ' + meshNewWall);
 
 							scene.add( meshNewWall );
-       var lights = [];
+			var lights = [];
         
             lights[ 0 ] = new THREE.PointLight( 0xffffff, 1, 0 );
             
@@ -173,7 +222,7 @@ var init = function ()
 
            
 
-        var spotLight = new THREE.SpotLight( 0xffffff );
+			var spotLight = new THREE.SpotLight( 0xffffff );
 
                             spotLight.position.set( 120, 120, 100 );
 
@@ -181,9 +230,10 @@ var init = function ()
                             
                             scene.add(spotLight);
 
-                            camera.lookAt(new THREE.Vector3(0, 0, 0));
+                            camera.lookAt(scene.position);
 
                             camera.position.set(50, 150, 200);
+							
                             //camera.position.set(cameraX, cameraY, cameraZ);
                             
                             controls = new function () 
@@ -207,23 +257,46 @@ var init = function ()
 									
                                     console.log('scene cleared');
                             };
-                            this.importScene = function () {
-                                
-        var loader = new THREE.OBJLoader();
-                                loader.load('scene.json', function ( object )
-                                {
-                                    //object.position.x = - 60;
-                                    //object.rotation.x = 20* Math.PI / 180;
-                                    //object.rotation.z = 20* Math.PI / 180;
-                                    //object.scale.x = 30;
-                                    //object.scale.y = 30;
-                                    //object.scale.z = 30;
-                                    obj = object;    
-                                        scene.add( obj );
-                                        animate();
-                                    });
-                                }
+                            this.importScene = function () 
+								{
+                               
+								var loader = new THREE.OBJLoader();
+														loader.load('scene.json', function ( object )
+														{
+															obj = object;    
+																scene.add( obj );
+																animate();
+															});
+								}
+							this.addWall = function () 
+								{
+											//wait 4 clicks
+										// after read mouse Y after update
+										// add wal with coordinates
+									document.addEventListener( 'mousedown', onDocumentMouseDown, false );
+									
+									/*
+									mesh.geometry.vertices[1].y=400;		
+									mesh.geometry.computeFaceNormals();
+									mesh.geometry.computeVertexNormals();
+									mesh.geometry.normalsNeedUpdate = true;
+									mesh.geometry.verticesNeedUpdate = true;
+									mesh.geometry.dynamic = true;
+									*/
+									
+									
+									
+									console.log('mesh.geometry ' +  JSON.stringify(mesh.geometry.vertices[1].y));	
+	
+											
+											
+											console.log('scene cleared');
+								};
                             };
+							
+							
+						   
+							
 
                             gui = new dat.GUI();
 
@@ -232,35 +305,17 @@ var init = function ()
                             gui.add(controls, "clearScene");
 
                             gui.add(controls, "importScene");
+							
+                            gui.add(controls, "addWall");
+							
+							projector = new THREE.Projector();
+							
+							
                     
                     
-                    
-                } // end init
-                
-                
-var render = function () 
-                {
-                        renderer.render(scene, camera);
-                };
-                
-                function animate() 
-                {
-                    requestAnimationFrame( animate );
-                    render();
-                }
-                    
-              /*  $( "body" ).mouseup(function() 
-                {
-                    // objcoord
-                        $.post( "/api/put_coord", { "x": camera.position.x, "y": camera.position.y, "z":camera.position.z })
+} // end init
 
-                            .done(function( data ) {
-
-                                 console.log( "Data to SERVER posted and recieved : " + data );
-                        });
-
-                         console.log('cameraPOS --> '+camera.position.x);
-                    });*/
+                    
 					
                 $( document ).ready( function() 
 					{
@@ -268,32 +323,5 @@ var render = function ()
 
                         animate();
 
-                                  /*  $.get("/api/get_coord")
-
-                                     .done(function(data) 
-
-                                      {
-                                     // if load last camera position 
-                                         if ( data != "404"){
-
-                                             console.log("START Data Loaded camera XYZ: " + data.x + " "+data.y + " " +data.y );
-
-                                             cameraX = data.x;
-
-                                             cameraY = data.y; 
-
-                                             cameraZ = data.z;    
-                                         }
-                                         init();
-
-                                         animate();
-                                     })
-                                    .fail(function() 
-                                    {
-                                    //console.log("if fail, initiate scene and render, init with def. coord: "+cameraX+" "+cameraY+" "+cameraZ);
-                                    // if fail, initiate scene and render
-                                            init();
-                                            animate();
-
-                                    })*/
-                                  });
+ 
+                    });
