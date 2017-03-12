@@ -3,9 +3,8 @@ TODO
 
     текстуры на стены
     http://jsfiddle.net/C5dga/13/
-    рисовать мышкой
-	// осталось добавить 4-ре координаты, после 4-й добавить стену с именем wallCount + 1
-	// имопортировать диван
+	// 
+    // имопортировать диван
 	// считать все обекты в json
 	
 */                
@@ -13,9 +12,9 @@ var scene, camera,
     cameraPosition, cameraX, 
     cameraY, cameraZ, gui, 
     controls, sceneJson, exporter,
-	meshб wallCount;
+	mesh, wallCount;
 
-                
+
 var renderer = new THREE.WebGLRenderer();
                 
 var scene = new THREE.Scene();
@@ -31,39 +30,128 @@ var cameraZ = 250;
 var projector, mouse = { x: 0, y: 0 };
 
 var wallHeight = 90;
+
+var clickCount = 0;
+var coord = {};
 				
 var onDocumentMouseDown = function ( event ) 
 {
-						// the following line would stop any other event handler from firing
-						// (such as the mouse's TrackballControls)
-						// event.preventDefault();
+	
+	// event.preventDefault();
+	// update the mouse variable
+	mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+
+	mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+
+	console.log('mouse.x ' + mouse.x);
+
+	console.log('mouse.y ' + mouse.y);
+
+	
+	if (clickCount <= 3){
+		
+		
+		
+		
+		
+		
+		coord[clickCount] = {'x' : mouse.x, 'y' : mouse.y};
+		
+		//console.log('clickCount ' + clickCount);
+		
+		//console.log(clickCount+' mouse_x mouse_y ' + JSON.stringify(coord));
+		clickCount ++;
+		
+	} else {
+		
+		console.log('0 mouse_x ' + coord['0'].x + ' mouse_y ' +coord['0'].y);
+		console.log('1 mouse_x ' + coord['1'].x + ' mouse_y ' +coord['1'].y);
+		console.log('2 mouse_x ' + coord['2'].x + ' mouse_y ' +coord['2'].y);
+		console.log('3 mouse_x ' + coord['3'].x + ' mouse_y ' +coord['3'].y);
+		
+		
+		
+		
+	console.log('mesh.geometry ' +  JSON.stringify(mesh));		
+	//console.log('mesh.geometry ' +  JSON.stringify(mesh.geometry.vertices[1].y));		
+		
+		// make new wall and stop function
+        newshape = new THREE.Shape();
+                        
+                        shape.moveTo(  coord['0'].x ,coord['0'].y );
+                        
+                        shape.lineTo( coord['0'].x, coord['1'].y );
+                        
+                        shape.lineTo( coord['2'].x, +coord['2'].y );
+                        
+                        shape.lineTo( coord['3'].x, coord['3'].y );
+                        
+                        shape.lineTo( coord['0'].x, coord['0'].y );
+
+                        
+        var newextrudeSettings = {
+                        steps: 1,
+                        
+                        amount: wallHeight,
+                        
+                        bevelEnabled: false,
+                        
+                        bevelThickness: 0.5,
+                        
+                        bevelSize: 0.5,
+                        
+                        bevelSegments: 8,
+                        
+                        UVGenerator: THREE.ExtrudeGeometry.BoundingBoxUVGenerator
+         };
+
+        var newgeometry = new THREE.ExtrudeGeometry( newshape, newextrudeSettings );
+	
+		// load a texture, set wrap mode to repeat
+		var newtexture = new THREE.TextureLoader().load( '/public/images/br.jpg' );
+		
+		newtexture.wrapS = THREE.RepeatWrapping;
+		
+		newtexture.wrapT = THREE.RepeatWrapping;
+	
+		newtexture.repeat.set( 0.011, 0.011 );
+
+        var newmaterial = new THREE.MeshLambertMaterial( { color: 0xffffff, map:newtexture} );
+		
+		
+                           
+        var newmesh = new THREE.Mesh( newgeometry, newmaterial ) ;
+
+                            newmesh.rotation.y += 0.02;
+
+                            newmesh.castShadow = true;
+							
+							scene.add( newmesh );
+		
+		clickCount = 0;
+		
+		document.removeEventListener('mousedown', onDocumentMouseDown, false);
+		
+		console.log(' function mouse stopped');
+					 
+	}	
+		
+							
+						//}
 						
-						console.log("Click.");
-						
-						// update the mouse variable
-						mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-						mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
-						
-						console.log('mouse.x ' + mouse.x);
-						console.log('mouse.y ' + mouse.y);
-						
-						
-						var meshNewWall = new THREE.Mesh( geometry, material ) ;
+				 	 
+						// TODO: handle exception
+					
+/*						var wallCount + = new THREE.Mesh( geometry, material ) ;
 
 									meshNewWall.castShadow = true;
-									
-									mesh.position.set( -50, 0, -25 );
 									
 									meshNewWall.position.set( 40, 0, -30 );
 									
 									console.log('meshNewWall ' + meshNewWall);
 
-									scene.add( meshNewWall );
-						
-												
-						
-						// find intersections
-
+									scene.add( meshNewWall );*/
+							return 0;
 
 } // onDocumentMouseDown
                 
@@ -186,7 +274,7 @@ var init = function ()
 		
 		
                            
-        var mesh = new THREE.Mesh( geometry, material ) ;
+        mesh = new THREE.Mesh( geometry, material ) ;
 
                             mesh.rotation.y += 0.02;
 
@@ -209,7 +297,7 @@ var init = function ()
 							
 							meshNewWall.rotation.y = 17.30;
 							
-							console.log('meshNewWall ' + meshNewWall);
+							
 
 							scene.add( meshNewWall );
 			var lights = [];
@@ -270,9 +358,9 @@ var init = function ()
 								}
 							this.addWall = function () 
 								{
-											//wait 4 clicks
-										// after read mouse Y after update
-										// add wal with coordinates
+								//wait 4 clicks
+								//after read mouse Y after update
+								//add wal with coordinates
 									document.addEventListener( 'mousedown', onDocumentMouseDown, false );
 									
 									/*
@@ -284,13 +372,10 @@ var init = function ()
 									mesh.geometry.dynamic = true;
 									*/
 									
-									
-									
-									console.log('mesh.geometry ' +  JSON.stringify(mesh.geometry.vertices[1].y));	
 	
 											
 											
-											console.log('scene cleared');
+											
 								};
                             };
 							
