@@ -3,16 +3,17 @@ TODO
 
     текстуры на стены
     http://jsfiddle.net/C5dga/13/
-	// 
+    // 
     // имопортировать диван
-	// считать все обекты в json
-	
+    // считать все обекты в json
+    https://stemkoski.github.io/Three.js/Mouse-Sprite.html
+    
 */                
 var scene, camera, 
     cameraPosition, cameraX, 
     cameraY, cameraZ, gui, 
     controls, sceneJson, exporter,
-	mesh, wallCount;
+    mesh, wallCount, coord = {};
 
 
 var renderer = new THREE.WebGLRenderer();
@@ -27,137 +28,147 @@ var cameraY = 75;
                 
 var cameraZ = 250;  
 
-var projector, mouse = { x: 0, y: 0 };
+var projector;
 
 var wallHeight = 90;
 
 var clickCount = 0;
-var coord = {};
-				
+
+var mouse = new THREE.Vector2();
+
+
+
+                
 var onDocumentMouseDown = function ( event ) 
 {
-	
-	// event.preventDefault();
-	// update the mouse variable
-	mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+    
+    event.preventDefault();
+    // update the mouse variable
 
-	mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+    mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+    
+    mouse.y = -( event.clientY / window.innerHeight ) * 2 + 1;
+        
+    var vector = new THREE.Vector3(mouse.x, mouse.y, 0.5);
+    
+    vector.unproject( camera );
+    
+    var dir = vector.sub( camera.position ).normalize();
+    
+    var distance = - camera.position.z / dir.z;
+    
+    var pos = camera.position.clone().add( dir.multiplyScalar( distance ) );
+    
+    console.log('mouse_x ' + pos.x + ' mouse_y ' + pos.y);
+    
+    if (clickCount <= 3){
 
-	console.log('mouse.x ' + mouse.x);
+        coord[clickCount] = {'x' : pos.x, 'y' : pos.y};
+        
+        clickCount ++;
+        
+    } else {
+        
+        console.log('0 mouse_x ' + coord['0'].x + ' mouse_y ' +coord['0'].y);
 
-	console.log('mouse.y ' + mouse.y);
+        console.log('1 mouse_x ' + coord['1'].x + ' mouse_y ' +coord['1'].y);
 
-	
-	if (clickCount <= 3){
-		
-		
-		
-		
-		
-		
-		coord[clickCount] = {'x' : mouse.x, 'y' : mouse.y};
-		
-		//console.log('clickCount ' + clickCount);
-		
-		//console.log(clickCount+' mouse_x mouse_y ' + JSON.stringify(coord));
-		clickCount ++;
-		
-	} else {
-		
-		console.log('0 mouse_x ' + coord['0'].x + ' mouse_y ' +coord['0'].y);
-		console.log('1 mouse_x ' + coord['1'].x + ' mouse_y ' +coord['1'].y);
-		console.log('2 mouse_x ' + coord['2'].x + ' mouse_y ' +coord['2'].y);
-		console.log('3 mouse_x ' + coord['3'].x + ' mouse_y ' +coord['3'].y);
-		
-		
-		
-		
-	console.log('mesh.geometry ' +  JSON.stringify(mesh));		
-	//console.log('mesh.geometry ' +  JSON.stringify(mesh.geometry.vertices[1].y));		
-		
-		// make new wall and stop function
+        console.log('2 mouse_x ' + coord['2'].x + ' mouse_y ' +coord['2'].y);
+
+        console.log('3 mouse_x ' + coord['3'].x + ' mouse_y ' +coord['3'].y);
+    //console.log('mesh.geometry ' +  JSON.stringify(mesh));        
+    //console.log('mesh.geometry ' +  JSON.stringify(mesh.geometry.vertices[1].y));        
+        
+        // make new wall and stop function
         newshape = new THREE.Shape();
                         
-                        shape.moveTo(  coord['0'].x ,coord['0'].y );
+        shape.moveTo(  coord['0'].x ,coord['0'].y );
+        
+        shape.lineTo( coord['0'].x, coord['1'].y );
                         
-                        shape.lineTo( coord['0'].x, coord['1'].y );
+        shape.lineTo( coord['2'].x, +coord['2'].y );
                         
-                        shape.lineTo( coord['2'].x, +coord['2'].y );
+        shape.lineTo( coord['3'].x, coord['3'].y );
                         
-                        shape.lineTo( coord['3'].x, coord['3'].y );
-                        
-                        shape.lineTo( coord['0'].x, coord['0'].y );
+        shape.lineTo( coord['0'].x, coord['0'].y );
 
                         
         var newextrudeSettings = {
-                        steps: 1,
-                        
-                        amount: wallHeight,
-                        
-                        bevelEnabled: false,
-                        
-                        bevelThickness: 0.5,
-                        
-                        bevelSize: 0.5,
-                        
-                        bevelSegments: 8,
-                        
-                        UVGenerator: THREE.ExtrudeGeometry.BoundingBoxUVGenerator
+            
+            steps: 1,
+            
+            amount: wallHeight,
+            
+            bevelEnabled: false,
+            
+            bevelThickness: 0.5,
+            
+            bevelSize: 0.5,
+            
+            bevelSegments: 8,
+            
+            UVGenerator: THREE.ExtrudeGeometry.BoundingBoxUVGenerator
          };
 
         var newgeometry = new THREE.ExtrudeGeometry( newshape, newextrudeSettings );
-	
-		// load a texture, set wrap mode to repeat
-		var newtexture = new THREE.TextureLoader().load( '/public/images/br.jpg' );
-		
-		newtexture.wrapS = THREE.RepeatWrapping;
-		
-		newtexture.wrapT = THREE.RepeatWrapping;
-	
-		newtexture.repeat.set( 0.011, 0.011 );
+    
+        // load a texture, set wrap mode to repeat
+        var newtexture = new THREE.TextureLoader().load( '/public/images/br.jpg' );
+        
+        newtexture.wrapS = THREE.RepeatWrapping;
+        
+        newtexture.wrapT = THREE.RepeatWrapping;
+    
+        newtexture.repeat.set( 0.011, 0.011 );
 
         var newmaterial = new THREE.MeshLambertMaterial( { color: 0xffffff, map:newtexture} );
-		
-		
+        
+        
                            
         var newmesh = new THREE.Mesh( newgeometry, newmaterial ) ;
 
                             newmesh.rotation.y += 0.02;
 
                             newmesh.castShadow = true;
-							
-							scene.add( newmesh );
-		
-		clickCount = 0;
-		
-		document.removeEventListener('mousedown', onDocumentMouseDown, false);
-		
-		console.log(' function mouse stopped');
-					 
-	}	
-		
-							
-						//}
-						
-				 	 
-						// TODO: handle exception
-					
-/*						var wallCount + = new THREE.Mesh( geometry, material ) ;
+                            
+                            scene.add( newmesh );
+        
+        clickCount = 0;
+        
+        coord = 0;
+        
+        document.removeEventListener('mousedown', onDocumentMouseDown, false);
+        
+        console.log(' function mouse stopped');
+                     
+    }    
+        
+                            
+                        //}
+                        
+                      
+                        // TODO: handle exception
+                    
+/*                        var wallCount + = new THREE.Mesh( geometry, material ) ;
 
-									meshNewWall.castShadow = true;
-									
-									meshNewWall.position.set( 40, 0, -30 );
-									
-									console.log('meshNewWall ' + meshNewWall);
+                                    meshNewWall.castShadow = true;
+                                    
+                                    meshNewWall.position.set( 40, 0, -30 );
+                                    
+                                    console.log('meshNewWall ' + meshNewWall);
 
-									scene.add( meshNewWall );*/
-							return 0;
+                                    scene.add( meshNewWall );*/
+                            return 0;
 
 } // onDocumentMouseDown
                 
+//var rotateY = new THREE.Matrix4().makeRotationY( 0.005 );
                 
 var render = function () 
 {
+        //camera.applyMatrix( rotateY );
+        //camera.updateMatrixWorld();
+
         renderer.render(scene, camera);
 }; //render
                
@@ -167,7 +178,7 @@ var animate = function ()
        render();
 } //animate
 
-	
+    
 var init = function ()
 {
              renderer.setSize( window.innerWidth, window.innerHeight );
@@ -184,6 +195,12 @@ var init = function ()
 
         scene.add(axes);
 
+        var skyBoxGeometry = new THREE.CubeGeometry( 10000, 10000, 10000 );
+        var skyBoxMaterial = new THREE.MeshBasicMaterial( { color: 0x9999ff, side: THREE.BackSide } );
+        var skyBox = new THREE.Mesh( skyBoxGeometry, skyBoxMaterial );
+        skyBox.flipSided = true; // render faces from inside of the cube, instead of from outside (default).
+        scene.add(skyBox);
+        
         // instantiate a loader
         var loader = new THREE.TextureLoader();
 
@@ -202,18 +219,18 @@ var init = function ()
                  } );
                      
                 var plane = new THREE.Mesh(planeGeometry,planeMaterial);
-				
+                
                 plane.rotation.x = -0.5*Math.PI;
                 
-				plane.position.x = 15;
+                plane.position.x = 15;
 
-				plane.position.y = 0;
+                plane.position.y = 0;
 
-				plane.position.z = 0;
+                plane.position.z = 0;
 
-				plane.receiveShadow = true;
+                plane.receiveShadow = true;
                 
-				scene.add(plane);
+                scene.add(plane);
             },
             // Function called when download progresses
             function ( xhr ) 
@@ -227,7 +244,7 @@ var init = function ()
             }
         );
 
-	
+    
         var length = 3, width = 50;
                         
         shape = new THREE.Shape();
@@ -260,47 +277,47 @@ var init = function ()
          };
 
         var geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
-	
-		// load a texture, set wrap mode to repeat
-		var texture = new THREE.TextureLoader().load( '/public/images/br.jpg' );
-		
-		texture.wrapS = THREE.RepeatWrapping;
-		
-		texture.wrapT = THREE.RepeatWrapping;
-	
-		texture.repeat.set( 0.011, 0.011 );
+    
+        // load a texture, set wrap mode to repeat
+        var texture = new THREE.TextureLoader().load( '/public/images/br.jpg' );
+        
+        texture.wrapS = THREE.RepeatWrapping;
+        
+        texture.wrapT = THREE.RepeatWrapping;
+    
+        texture.repeat.set( 0.011, 0.011 );
 
         var material = new THREE.MeshLambertMaterial( { color: 0xffffff, map:texture} );
-		
-		
+        
+        
                            
         mesh = new THREE.Mesh( geometry, material ) ;
 
                             mesh.rotation.y += 0.02;
 
                             mesh.castShadow = true;
-							
-							scene.add( mesh );
-			
-		
-		//shape.curves.v1.x =50;
+                            
+                            scene.add( mesh );
+            
+        
+        //shape.curves.v1.x =50;
  
-		var meshNewWall = new THREE.Mesh( geometry, material ) ;
+        var meshNewWall = new THREE.Mesh( geometry, material ) ;
 
                             meshNewWall.rotation.y += 0.02;
 
                             meshNewWall.castShadow = true;
-							
-							mesh.position.set( -50, 0, -25 );
-							
-							meshNewWall.position.set( 40, 0, -30 );
-							
-							meshNewWall.rotation.y = 17.30;
-							
-							
+                            
+                            mesh.position.set( -50, 0, -25 );
+                            
+                            meshNewWall.position.set( 40, 0, -30 );
+                            
+                            meshNewWall.rotation.y = 17.30;
+                            
+                            
 
-							scene.add( meshNewWall );
-			var lights = [];
+                            scene.add( meshNewWall );
+            var lights = [];
         
             lights[ 0 ] = new THREE.PointLight( 0xffffff, 1, 0 );
             
@@ -308,27 +325,27 @@ var init = function ()
 
             scene.add( lights[ 0 ] );
 
-           
+            var spotLight = new THREE.SpotLight( 0xffffff );
 
-			var spotLight = new THREE.SpotLight( 0xffffff );
+            spotLight.position.set( 120, 120, 100 );
 
-                            spotLight.position.set( 120, 120, 100 );
-
-                            spotLight.castShadow = true;
+            spotLight.castShadow = true;
                             
-                            scene.add(spotLight);
+            scene.add(spotLight);
 
-                            camera.lookAt(scene.position);
+                                
 
-                            camera.position.set(50, 150, 200);
-							
-                            //camera.position.set(cameraX, cameraY, cameraZ);
+            camera.lookAt(scene.position);
+
+            camera.position.set(50, 150, 200);
                             
-                            controls = new function () 
-                            {
-                               this.exportScene = function () 
+            //camera.position.set(cameraX, cameraY, cameraZ);
+                       
+            controls = new function () 
+                 {
+                    this.exportScene = function () 
                                {
-                                        exporter = new THREE.OBJExporter();
+                                       exporter = new THREE.OBJExporter();
 
                                         result = exporter.parse(scene);
                                     
@@ -342,46 +359,46 @@ var init = function ()
                             this.clearScene = function () 
                             {
                                     scene = new THREE.Scene();
-									
+                                    
                                     console.log('scene cleared');
                             };
                             this.importScene = function () 
-								{
+                                {
                                
-								var loader = new THREE.OBJLoader();
-														loader.load('scene.json', function ( object )
-														{
-															obj = object;    
-																scene.add( obj );
-																animate();
-															});
-								}
-							this.addWall = function () 
-								{
-								//wait 4 clicks
-								//after read mouse Y after update
-								//add wal with coordinates
-									document.addEventListener( 'mousedown', onDocumentMouseDown, false );
-									
-									/*
-									mesh.geometry.vertices[1].y=400;		
-									mesh.geometry.computeFaceNormals();
-									mesh.geometry.computeVertexNormals();
-									mesh.geometry.normalsNeedUpdate = true;
-									mesh.geometry.verticesNeedUpdate = true;
-									mesh.geometry.dynamic = true;
-									*/
-									
-	
-											
-											
-											
-								};
+                                var loader = new THREE.OBJLoader();
+                                                        loader.load('scene.json', function ( object )
+                                                        {
+                                                            obj = object;    
+                                                                scene.add( obj );
+                                                                animate();
+                                                            });
+                                }
+                            this.addWall = function () 
+                                {
+                                //wait 4 clicks
+                                //after read mouse Y after update
+                                //add wal with coordinates
+                                    document.addEventListener( 'mousedown', onDocumentMouseDown, false );
+                                    
+                                    /*
+                                    mesh.geometry.vertices[1].y=400;        
+                                    mesh.geometry.computeFaceNormals();
+                                    mesh.geometry.computeVertexNormals();
+                                    mesh.geometry.normalsNeedUpdate = true;
+                                    mesh.geometry.verticesNeedUpdate = true;
+                                    mesh.geometry.dynamic = true;
+                                    */
+                                    
+    
+                                            
+                                            
+                                            
+                                };
                             };
-							
-							
-						   
-							
+                            
+                            
+                           
+                            
 
                             gui = new dat.GUI();
 
@@ -390,21 +407,21 @@ var init = function ()
                             gui.add(controls, "clearScene");
 
                             gui.add(controls, "importScene");
-							
+                            
                             gui.add(controls, "addWall");
-							
-							projector = new THREE.Projector();
-							
-							
+                            
+                            projector = new THREE.Projector();
+                            
+                            
                     
                     
 } // end init
 
                     
-					
+                    
                 $( document ).ready( function() 
-					{
-						init();
+                    {
+                        init();
 
                         animate();
 
