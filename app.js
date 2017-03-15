@@ -22,7 +22,7 @@ var routes = require('./routes/index');
 var app = express();
 
 app.use(expressSession({secret: 'thewaygoesup', saveUninitialized:true,  resave: true}));
-
+app.use(bodyParser({limit: '50mb'}));
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
