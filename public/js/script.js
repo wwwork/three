@@ -89,11 +89,6 @@ var onDocumentMouseDown = function ( event )
 			clickCount ++;
 			
 		} else {
-			
-			
-		//console.log('mesh.geometry ' +  JSON.stringify(mesh));        
-		//console.log('mesh.geometry ' +  JSON.stringify(mesh.geometry.vertices[1].y));        
-			
 			// make new wall and stop function
 			newshape = new THREE.Shape();
 							
@@ -351,7 +346,7 @@ var init = function ()
                                {
                                        exporter = new THREE.OBJExporter();
 
-                                        result = exporter.parse(scene);
+                                       result = exporter.parse(scene);
                                     
                                         $.post( "/api/put_scene", {"scene":result})
                                             .done(function( data ) {
