@@ -7,20 +7,34 @@ TODO
     // имопортировать диван
     // считать все обекты в json
     https://stemkoski.github.io/Three.js/Mouse-Sprite.html
-    
+	https://www.jonathan-petitcolas.com/2015/07/27/importing-blender-modelized-mesh-in-threejs.html
+	http://threejs.org/examples/webgl_loader_json_claraio.html
+	http://stackoverflow.com/questions/17939188/how-can-i-load-multiple-textures-materials-to-a-model-using-three-js
+    https://github.com/josdirksen/learning-threejs/blob/master/chapter-08/04-load-save-json-scene.html
+	https://github.com/josdirksen/learning-threejs
+	https://github.com/mrdoob/three.js/issues/3368
+	
+	https://gitlab.cern.ch/GeantV/geant/blob/master/threejs/04-load-save-json-scene.html
+	http://stackoverflow.com/questions/33577539/three-js-load-json-string
+	var json = geometry.toJSON();
+		http://stackoverflow.com/questions/30959385/export-threejs-geometry-to-json
+		
+		
+		
+		http://stackoverflow.com/questions/42774885/uncaught-typeerror-cannot-read-property-length-of-null-three-js/42798440#42798440
 */                
 var scene, camera, 
     cameraPosition, cameraX, 
     cameraY, cameraZ, gui, 
     controls, sceneJson, exporter,
-    mesh, wallCount, coord = {};
+    mesh, wallCount, coord = [], objects = [];
 
 
 var renderer = new THREE.WebGLRenderer();
                 
 var scene = new THREE.Scene();
                 
-var camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
+var camera = new THREE.PerspectiveCamera( 60, window.innerWidth/window.innerHeight, 1, 1000 );
 
 var cameraX = 90;
                 
@@ -36,6 +50,11 @@ var clickCount = 0;
 
 var mouse = new THREE.Vector2();
 
+var raycaster = new THREE.Raycaster();
+
+var pos = new THREE.Vector3();
+
+var intersects;
 
 
                 
@@ -45,105 +64,98 @@ var onDocumentMouseDown = function ( event )
     event.preventDefault();
     // update the mouse variable
 
-    mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-    
-    mouse.y = -( event.clientY / window.innerHeight ) * 2 + 1;
+	mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  
+	mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+	
+	raycaster.setFromCamera(mouse, camera);
         
-    var vector = new THREE.Vector3(mouse.x, mouse.y, 0.5);
+	intersects = raycaster.intersectObjects(objects); //    
+	
+    if (intersects.length > 0) { 
     
-    vector.unproject( camera );
-    
-    var dir = vector.sub( camera.position ).normalize();
-    
-    var distance = - camera.position.z / dir.z;
-    
-    var pos = camera.position.clone().add( dir.multiplyScalar( distance ) );
-    
-    console.log('mouse_x ' + pos.x + ' mouse_y ' + pos.y);
-    
-    if (clickCount <= 3){
+		if (clickCount <= 3){
 
-        coord[clickCount] = {'x' : pos.x, 'y' : pos.y};
-        
-        clickCount ++;
-        
-    } else {
-        
-        console.log('0 mouse_x ' + coord['0'].x + ' mouse_y ' +coord['0'].y);
-
-        console.log('1 mouse_x ' + coord['1'].x + ' mouse_y ' +coord['1'].y);
-
-        console.log('2 mouse_x ' + coord['2'].x + ' mouse_y ' +coord['2'].y);
-
-        console.log('3 mouse_x ' + coord['3'].x + ' mouse_y ' +coord['3'].y);
-    //console.log('mesh.geometry ' +  JSON.stringify(mesh));        
-    //console.log('mesh.geometry ' +  JSON.stringify(mesh.geometry.vertices[1].y));        
-        
-        // make new wall and stop function
-        newshape = new THREE.Shape();
+			coord[clickCount] = intersects[0].point.clone(); 
+			
+			console.log('xyz ' + coord[clickCount].x +' '+ coord[clickCount].y + ' '+ coord[clickCount].z);    
+			
+			var cp = new THREE.Mesh(new THREE.SphereGeometry(0.125, 16, 12), new THREE.MeshBasicMaterial({color: "red"}));
+			
+			cp.position.copy(intersects[0].point);
+			
+			scene.add(cp);
+			
+			clickCount ++;
+			
+		} else {
+			
+			
+		//console.log('mesh.geometry ' +  JSON.stringify(mesh));        
+		//console.log('mesh.geometry ' +  JSON.stringify(mesh.geometry.vertices[1].y));        
+			
+			// make new wall and stop function
+			newshape = new THREE.Shape();
+							
+			newshape.moveTo( coord['0'].x, -coord['0'].z );
+			
+			newshape.lineTo( coord['1'].x, -coord['1'].z );
+							
+			newshape.lineTo( coord['2'].x, -coord['2'].z );
+							
+			newshape.lineTo( coord['3'].x, -coord['3'].z );
+							
+			newshape.lineTo( coord['0'].x, -coord['0'].z );
+			
+							
+			var newextrudeSettings = {
+				
+				teps: 1,
                         
-        shape.moveTo(  coord['0'].x ,coord['0'].y );
-        
-        shape.lineTo( coord['0'].x, coord['1'].y );
+                amount: wallHeight,
                         
-        shape.lineTo( coord['2'].x, +coord['2'].y );
+                bevelEnabled: false,
                         
-        shape.lineTo( coord['3'].x, coord['3'].y );
+                bevelThickness: 0.5,
                         
-        shape.lineTo( coord['0'].x, coord['0'].y );
-
+                bevelSize: 0.5,
                         
-        var newextrudeSettings = {
-            
-            steps: 1,
-            
-            amount: wallHeight,
-            
-            bevelEnabled: false,
-            
-            bevelThickness: 0.5,
-            
-            bevelSize: 0.5,
-            
-            bevelSegments: 8,
-            
-            UVGenerator: THREE.ExtrudeGeometry.BoundingBoxUVGenerator
-         };
+                bevelSegments: 8,
+						
+				UVGenerator: THREE.ExtrudeGeometry.BoundingBoxUVGenerator
+			 };
 
-        var newgeometry = new THREE.ExtrudeGeometry( newshape, newextrudeSettings );
-    
-        // load a texture, set wrap mode to repeat
-        var newtexture = new THREE.TextureLoader().load( '/public/images/br.jpg' );
-        
-        newtexture.wrapS = THREE.RepeatWrapping;
-        
-        newtexture.wrapT = THREE.RepeatWrapping;
-    
-        newtexture.repeat.set( 0.011, 0.011 );
+			var newgeometry = new THREE.ExtrudeGeometry( newshape, newextrudeSettings );
+				
+				newgeometry.rotateX(-Math.PI / 2);
+			// load a texture, set wrap mode to repeat
+			var newtexture = new THREE.TextureLoader().load( '/public/images/br.jpg' );
+			
+			newtexture.wrapS = THREE.RepeatWrapping;
+			
+			newtexture.wrapT = THREE.RepeatWrapping;
+		
+			newtexture.repeat.set( 0.011, 0.011 );
 
-        var newmaterial = new THREE.MeshLambertMaterial( { color: 0xffffff, map:newtexture} );
-        
-        
-                           
-        var newmesh = new THREE.Mesh( newgeometry, newmaterial ) ;
+			var newmaterial = new THREE.MeshLambertMaterial( { color: 0xffffff, map:newtexture} );
+							   
+			var newmesh = new THREE.Mesh( newgeometry, newmaterial ) ;
 
-                            newmesh.rotation.y += 0.02;
+			newmesh.rotation.y += 0.02;
 
-                            newmesh.castShadow = true;
-                            
-                            scene.add( newmesh );
-        
-        clickCount = 0;
-        
-        coord = 0;
-        
-        document.removeEventListener('mousedown', onDocumentMouseDown, false);
-        
-        console.log(' function mouse stopped');
-                     
-    }    
-        
-                            
+			newmesh.castShadow = true;
+								
+			scene.add( newmesh );
+			
+			clickCount = 0;
+			
+			coord = [];
+			
+			document.removeEventListener('mousedown', onDocumentMouseDown, false);
+			
+		}    
+			
+	} // eif							
                         //}
                         
                       
@@ -168,14 +180,13 @@ var render = function ()
 {
         //camera.applyMatrix( rotateY );
         //camera.updateMatrixWorld();
-
         renderer.render(scene, camera);
 }; //render
                
 var animate = function () 
 {
-       requestAnimationFrame( animate );
-       render();
+    requestAnimationFrame( animate );
+    render();
 } //animate
 
     
@@ -195,11 +206,7 @@ var init = function ()
 
         scene.add(axes);
 
-        var skyBoxGeometry = new THREE.CubeGeometry( 10000, 10000, 10000 );
-        var skyBoxMaterial = new THREE.MeshBasicMaterial( { color: 0x9999ff, side: THREE.BackSide } );
-        var skyBox = new THREE.Mesh( skyBoxGeometry, skyBoxMaterial );
-        skyBox.flipSided = true; // render faces from inside of the cube, instead of from outside (default).
-        scene.add(skyBox);
+		scene.fog = new THREE.Fog( 0xffffff, 2000, 10000 );
         
         // instantiate a loader
         var loader = new THREE.TextureLoader();
@@ -211,7 +218,7 @@ var init = function ()
             // Function when resource is loaded
             function ( texture ) 
             {
-                var planeGeometry = new THREE.PlaneGeometry(1000,1000,10, 10);
+                var planeGeometry = new THREE.PlaneGeometry(1000,1000, 20, 20);
                 // do something with the texture
                 var planeMaterial = new THREE.MeshLambertMaterial( {
                     color: 0xcccccc, 
@@ -222,15 +229,10 @@ var init = function ()
                 
                 plane.rotation.x = -0.5*Math.PI;
                 
-                plane.position.x = 15;
-
-                plane.position.y = 0;
-
-                plane.position.z = 0;
-
                 plane.receiveShadow = true;
                 
                 scene.add(plane);
+				objects.push(plane);
             },
             // Function called when download progresses
             function ( xhr ) 
@@ -314,14 +316,12 @@ var init = function ()
                             
                             meshNewWall.rotation.y = 17.30;
                             
-                            
-
                             scene.add( meshNewWall );
             var lights = [];
         
             lights[ 0 ] = new THREE.PointLight( 0xffffff, 1, 0 );
             
-            lights[ 0 ].position.set( 0, 200, 0 );
+            lights[ 0 ].position.set( 0, 100, 0 );
 
             scene.add( lights[ 0 ] );
 
@@ -332,12 +332,16 @@ var init = function ()
             spotLight.castShadow = true;
                             
             scene.add(spotLight);
-
-                                
+		
+			var light = new THREE.DirectionalLight(0xffffff, 2);
+			
+			light.position.set(5, 10, -10);
+			
+			scene.add(light);
 
             camera.lookAt(scene.position);
 
-            camera.position.set(50, 150, 200);
+            camera.position.set(0, 150, 200);
                             
             //camera.position.set(cameraX, cameraY, cameraZ);
                        
