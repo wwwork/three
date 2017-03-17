@@ -18,20 +18,29 @@ TODO
 	http://stackoverflow.com/questions/33577539/three-js-load-json-string
 	var json = geometry.toJSON();
 		http://stackoverflow.com/questions/30959385/export-threejs-geometry-to-json
-		
-		
+
 		
 		http://stackoverflow.com/questions/42774885/uncaught-typeerror-cannot-read-property-length-of-null-three-js/42798440#42798440
-		
 		https://github.com/josdirksen/learning-threejs/blob/master/chapter-08/03-load-save-json-object.html
-		
-*/                
+ move 	
+https://www.script-tutorials.com/webgl-with-three-js-lesson-10/		                                    /*
+                                    mesh.geometry.vertices[1].y=400;        
+                                    mesh.geometry.computeFaceNormals();
+                                    mesh.geometry.computeVertexNormals();
+                                    mesh.geometry.normalsNeedUpdate = true;
+                                    mesh.geometry.verticesNeedUpdate = true;
+                                    mesh.geometry.dynamic = true;
+                                    */
+                                    
+									
+                
 var scene, camera, 
     cameraPosition, cameraX, 
     cameraY, cameraZ, gui, 
     controls, sceneJson, exporter,
-    mesh, wallCount, coord = [], objects = [];
+    mesh, wallCount, coord = [], objects = [], selection = null, plane = null;
 
+var offset = new THREE.Vector3();
 
 var renderer = new THREE.WebGLRenderer();
                 
@@ -39,9 +48,9 @@ var scene = new THREE.Scene();
                 
 var camera = new THREE.PerspectiveCamera( 60, window.innerWidth/window.innerHeight, 1, 1000 );
 
-var cameraX = 0;
+var cameraX = 90;
                 
-var cameraY = 150; 
+var cameraY = 75; 
                 
 var cameraZ = 250;  
 
@@ -59,11 +68,21 @@ var pos = new THREE.Vector3();
 
 var intersects;
 
+var orbit = new THREE.OrbitControls( camera, renderer.domElement );
+
+orbit.target = new THREE.Vector3(0, 0, 0);
+
+orbit.maxDistance = 1550;
+
 
                 
 var onDocumentMouseDown = function ( event ) 
 {
-    
+	//remove global mouse event 
+	document.removeEventListener('mousedown', onDocumentMouseDownGlobal, false);
+	
+	console.log('onDocumentMouseDownGlobal STARTED ');
+	
     event.preventDefault();
     // update the mouse variable
 
@@ -81,45 +100,40 @@ var onDocumentMouseDown = function ( event )
 
 			coord[clickCount] = intersects[0].point.clone(); 
 			
-			console.log('xyz ' + coord[clickCount].x +' '+ coord[clickCount].y + ' '+ coord[clickCount].z);    
+			console.log('xyz' + coord[clickCount].x +' '+ coord[clickCount].y + ' '+ coord[clickCount].z);    
 			
 			clickCount ++;
 			
 		} else {
+			
+			
 			// make new wall and stop function
 			newshape = new THREE.Shape();
 							
-			newshape.moveTo( coord['0'].x, -coord['0'].z );
+			newshape.moveTo(coord['0'].x, -coord['0'].z );
 			
-			newshape.lineTo( coord['1'].x, -coord['1'].z );
+			newshape.lineTo(coord['1'].x, -coord['1'].z );
 							
-			newshape.lineTo( coord['2'].x, -coord['2'].z );
+			newshape.lineTo(coord['2'].x, -coord['2'].z );
 							
-			newshape.lineTo( coord['3'].x, -coord['3'].z );
+			newshape.lineTo(coord['3'].x, -coord['3'].z );
 							
-			newshape.lineTo( coord['0'].x, -coord['0'].z );
+			newshape.lineTo(coord['0'].x, -coord['0'].z );
 			
 							
 			var newextrudeSettings = {
 				
-				teps: 1,
-                        
-                amount: wallHeight,
-                        
-                bevelEnabled: false,
-                        
-                bevelThickness: 0.5,
-                        
-                bevelSize: 0.5,
-                        
-                bevelSegments: 8,
-						
+				steps: 1,
+				
+				amount: wallHeight,
+				
+				bevelEnabled: false,
+				
 				UVGenerator: THREE.ExtrudeGeometry.BoundingBoxUVGenerator
 			 };
 
 			var newgeometry = new THREE.ExtrudeGeometry( newshape, newextrudeSettings );
-				
-				newgeometry.rotateX(-Math.PI / 2);
+		
 			// load a texture, set wrap mode to repeat
 			var newtexture = new THREE.TextureLoader().load( '/public/images/br.jpg' );
 			
@@ -133,11 +147,13 @@ var onDocumentMouseDown = function ( event )
 							   
 			var newmesh = new THREE.Mesh( newgeometry, newmaterial ) ;
 
-			//newmesh.rotation.y += 0.02;
+								newmesh.rotation.y += 0.02;
 
-			newmesh.castShadow = true;
+								newmesh.castShadow = true;
 								
-			scene.add( newmesh );
+								scene.add( newmesh );
+								
+								objects.push( newmesh );
 			
 			clickCount = 0;
 			
@@ -145,40 +161,161 @@ var onDocumentMouseDown = function ( event )
 			
 			document.removeEventListener('mousedown', onDocumentMouseDown, false);
 			
+			console.log(' function onDocumentMouseDown  stopped');
+			// add global listener 
+			document.addEventListener( 'mousedown', onDocumentMouseDownGlobal, false );
+			
+			console.log(' function onDocumentMouseDownGlobal  STARTED');
+			
+			console.log(' function mouse stopped');
+			var objectsjson = objects.toJSON(); 
+			
+			console.log(' objects.toJSON()  --> ' + objectsjson);
+						 
 		}    
 			
 	} // eif							
-                        //}
-                        
-                      
-                        // TODO: handle exception
-                    
-/*                        var wallCount + = new THREE.Mesh( geometry, material ) ;
 
-                        meshNewWall.castShadow = true;
-                        
-                        meshNewWall.position.set( 40, 0, -30 );
-                        
-                        console.log('meshNewWall ' + meshNewWall);
-
-                        scene.add( meshNewWall );*/
-                        return 0;
+	return 0;
 
 } // onDocumentMouseDown
-                
-//var rotateY = new THREE.Matrix4().makeRotationY( 0.005 );
-                
+
+
+var onDocumentMouseDownGlobal = function (event) {
+	
+	document.addEventListener('mousemove', onDocumentMouseMove, false);
+	
+	document.addEventListener('mouseup', onDocumentMouseUp, false);
+	
+	// Get mouse position
+	console.log('GLOBAL onDocumentMouseDownGlobal ENABLE'); 
+
+	var mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+
+	var mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+
+	// Get 3D vector from 3D mouse position using 'unproject' function
+
+	var vector = new THREE.Vector3(mouseX, mouseY, 1);
+
+	vector.unproject(camera);
+
+	// Set the raycaster position
+
+	raycaster.set( camera.position, vector.sub( camera.position ).normalize() );
+
+	// Find all intersected objects
+
+	var intersects = raycaster.intersectObjects(objects);
+
+	if (intersects.length > 0) {
+
+		// Disable the controls
+
+		orbit.enabled = false;
+
+		// Set the selection - first intersected object
+
+		selection = intersects[0].object;
+
+		// Calculate the offset
+
+		var intersects = raycaster.intersectObject(plane);
+
+		offset.copy(intersects[0].point).sub(plane.position);
+
+	}
+
+} // onDocumentMouseDownGlobal
+
+
+var onDocumentMouseMove = function (event) {
+	
+	console.log('onDocumentMouseMove ENABLE');
+
+	event.preventDefault();
+	// Get mouse position
+
+	var mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+
+	var mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+
+	// Get 3D vector from 3D mouse position using 'unproject' function
+
+	var vector = new THREE.Vector3(mouseX, mouseY, 1);
+
+	vector.unproject(camera);
+
+// Set the raycaster position
+
+	raycaster.set( camera.position, vector.sub( camera.position ).normalize() );
+
+	if (selection) {
+
+		// Check the position where the plane is intersected
+		var intersects = raycaster.intersectObject(plane);
+
+		// Reposition the object based on the intersection point with the plane
+		selection.position.copy(intersects[0].point.sub(offset));
+
+	} else {
+
+		// Update position of the plane if need
+
+		var intersects = raycaster.intersectObjects(objects);
+
+		if (intersects.length > 0) {
+
+			plane.position.copy(intersects[0].object.position);
+
+			plane.lookAt(camera.position);
+
+		} // if 
+
+	} // else 
+
+} // end onDocumentMouseMove
+
+
+var onDocumentMouseUp = function (event) {
+	
+	//document.removeEventListener( 'mousedown', onDocumentMouseDownGlobal, false );
+	
+	//console.log('GLOBAL onDocumentMouseDownGlobal REMOVED'); 
+	
+	document.removeEventListener('mousemove', onDocumentMouseMove, false);
+	
+	console.log('GLOBAL onDocumentMouseMove REMOVED'); 
+	
+	document.removeEventListener('mouseup', onDocumentMouseUp, false);
+	
+	console.log('GLOBAL onDocumentMouseUp REMOVED'); 
+	
+// Get mouse position
+	
+	
+	// Enable the controls
+	orbit.enabled = true;
+
+	selection = null;
+
+} // end onDocumentMouseUp
+
+
+
+
+
+	   
 var render = function () 
 {
-        //camera.applyMatrix( rotateY );
-        //camera.updateMatrixWorld();
         renderer.render(scene, camera);
 }; //render
                
 var animate = function () 
 {
-    requestAnimationFrame( animate );
-    render();
+       requestAnimationFrame( animate );
+	   
+       render();
 } //animate
 
     
@@ -190,7 +327,7 @@ var init = function ()
              
              document.body.appendChild( renderer.domElement );
         
-        var orbit = new THREE.OrbitControls( camera, renderer.domElement );
+
         
         orbit.enableZoom = true;
 
@@ -198,11 +335,11 @@ var init = function ()
 
         scene.add(axes);
 
-		scene.fog = new THREE.Fog( 0xffffff, 2000, 10000 );
+		//scene.fog = new THREE.Fog( 0xffffff, 2000, 10000 );
         
         // instantiate a loader
         var loader = new THREE.TextureLoader();
-
+// Plane, that helps to determinate an intersection position
         // load a resource
         loader.load(
             // resource URL
@@ -217,14 +354,15 @@ var init = function ()
                     map: texture
                  } );
                      
-                var plane = new THREE.Mesh(planeGeometry,planeMaterial);
+                plane = new THREE.Mesh(planeGeometry,planeMaterial);
                 
                 plane.rotation.x = -0.5*Math.PI;
                 
                 plane.receiveShadow = true;
                 
                 scene.add(plane);
-				objects.push(plane);
+
+				//objects.push(plane);
             },
             // Function called when download progresses
             function ( xhr ) 
@@ -243,32 +381,31 @@ var init = function ()
                         
         shape = new THREE.Shape();
                         
-        shape.moveTo( 0,0 );
+                        shape.moveTo( 0,0 );
                         
-        shape.lineTo( 0, width );
-        
-		shape.lineTo( length, width );
+                        shape.lineTo( 0, width );
                         
-		shape.lineTo( length, 0 );
+                        shape.lineTo( length, width );
                         
-		shape.lineTo( 0, 0 );
+                        shape.lineTo( length, 0 );
+                        
+                        shape.lineTo( 0, 0 );
 
                         
         var extrudeSettings = {
-			
-			steps: 1,
-            
-			amount: wallHeight,
+                        steps: 1,
                         
-            bevelEnabled: false,
+                        amount: wallHeight,
                         
-            bevelThickness: 0.5,
+                        bevelEnabled: false,
                         
-            bevelSize: 0.5,
+                        bevelThickness: 0.5,
                         
-            bevelSegments: 8,
+                        bevelSize: 0.5,
                         
-            UVGenerator: THREE.ExtrudeGeometry.BoundingBoxUVGenerator
+                        bevelSegments: 8,
+                        
+                        UVGenerator: THREE.ExtrudeGeometry.BoundingBoxUVGenerator
          };
 
         var geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
@@ -288,108 +425,142 @@ var init = function ()
                            
         mesh = new THREE.Mesh( geometry, material ) ;
 
-        //mesh.rotation.y += 0.02;
+                            mesh.rotation.y += 0.02;
 
-        mesh.castShadow = true;
-                        
-        scene.add( mesh );
+                            mesh.castShadow = true;
+                            
+                            scene.add( mesh );
             
         
         //shape.curves.v1.x =50;
  
-        var meshNewWall = new THREE.Mesh( geometry, material ) ;
+			var meshNewWall = new THREE.Mesh( geometry, material ) ;
 
-        meshNewWall.rotation.y += 0.02;
+            meshNewWall.rotation.y += 0.02;
 
-        meshNewWall.castShadow = true;
-                        
-        mesh.position.set( -50, 0, -25 );
-                        
-        meshNewWall.position.set( 40, 0, -30 );
-                        
-        meshNewWall.rotation.y = 17.30;
-                        
-        scene.add( meshNewWall );
-       
-	    var lights = [];
+			meshNewWall.castShadow = true;
+			
+			mesh.position.set( -50, 0, -25 );
+
+			meshNewWall.position.set( 40, 0, -30 );
+
+			meshNewWall.rotation.y = 17.30;
+
+			scene.add( meshNewWall );
+
+			objects.push(meshNewWall);
+			
+            var lights = [];
         
-        
-        var spotLight = new THREE.SpotLight( 0xffffff );
+            lights[ 0 ] = new THREE.PointLight( 0xffffff, 1, 0 );
+            
+            lights[ 0 ].position.set( 0, 100, 0 );
 
-        spotLight.position.set( 120, 120, 100 );
+            scene.add( lights[ 0 ] );
 
-        spotLight.castShadow = true;
-                        
-        scene.add(spotLight);
+            var spotLight = new THREE.SpotLight( 0xffffff );
+
+            spotLight.position.set( 120, 220, 200 );
+
+            spotLight.castShadow = true;
+                            
+            scene.add(spotLight);
+			
+			
+
+			var dirLight = new THREE.DirectionalLight(0xffffff);
+
+			dirLight.position.set(200, 200, 1000).normalize();
+
+			this.camera.add(dirLight);
+
+			this.camera.add(dirLight.target);
+
+
+
 		
-		var light = new THREE.DirectionalLight(0xffffff, 2);
+			var light = new THREE.DirectionalLight(0xffffff, 2);
 			
-		light.position.set(5, 10, -10);
+			light.position.set(5, 10, -10);
 			
-		scene.add(light);
+			scene.add(light);
 
-        camera.lookAt(scene.position);
+            camera.lookAt(scene.position);
 
-        camera.position.set(cameraX, cameraY, cameraZ);
-                        
-        controls = new function () 
-        {
-                this.exportScene = function () 
-                {
-					/*
-					var exporter = new THREE.SceneExporter();
-					var sceneJson = JSON.stringify(exporter.parse(scene));
-					*/
-					result = mesh.toJSON();
-                    console.log(result);
-                    //console.log(JSON.stringify(result));
-                        
-                    $.post( "/api/put_scene", {"scene":result})
-                        .done(function( data ) {
-                            console.log( "Data to SERVER posted and recieved : " + data );
-						});
+            camera.position.set(0, 150, 200);
+                            
+            //camera.position.set(cameraX, cameraY, cameraZ);
+                       
+            controls = new function () 
+                 {
+                    this.exportScene = function () 
+                               {
+                                        //exporter = new THREE.OBJExporter();
 
-                    console.log(result);
-                };
-                this.clearScene = function () 
-                {
-					scene = new THREE.Scene();
-                        
-                    console.log('scene cleared');
-                    
-				};
-                this.importScene = function () 
-                {
-                    var loader = new THREE.OBJLoader();
-                    loader.load('scene.json', function ( object )
-                    {
-                       obj = object;    
-                       scene.add( obj );
-                       animate();
-                    });
-                }
-                this.addWall = function () 
-                {
-                        //wait 4 clicks
-                        //after read mouse Y after update
-                        //add wal with coordinates
-                   document.addEventListener( 'mousedown', onDocumentMouseDown, false );
-                   };
-        };
-                        
-            gui = new dat.GUI();
+                                        result = exporter.parse(scene);
+                                    
+                                        $.post( "/api/put_scene", {"scene":result})
+                                            .done(function( data ) {
+                                                console.log( "Data to SERVER posted and recieved : " + data );
+                                        });
 
-            gui.add(controls, "exportScene");
+                                        console.log(result);
+                                };
+                            this.clearScene = function () 
+                            {
+                                    scene = new THREE.Scene();
+                                    
+                                    console.log('scene cleared');
+                            };
+                            this.importScene = function () 
+                                {
+                               
+									var loader = new THREE.OBJLoader();
+									
+									loader.load('scene.json', function ( object )
+									{
+										obj = object;    
+										
+										scene.add( obj );
+										
+										animate();
+									});
+                                }
+                            this.addWall = function () 
+                                {
+									// remove orbit controls
+									orbit.enabled = false;
+									//wait 4 clicks
+									//add wal with coordinates
+									// and add another
+									
+									document.removeEventListener( 'mousedown', onDocumentMouseDownGlobal, false );
+									
+									console.log('GLOBAL onDocumentMouseDownGlobal REMOVED --> ADDWALL  ');
+                                    
+									document.addEventListener( 'mousedown', onDocumentMouseDown, false );
+									
+                                    console.log('GLOBAL onDocumentMouseDown ADDED --> ADDWALL  ');
+                                };
+                            };
+                            
+                            
+                           
+                            
 
-            gui.add(controls, "clearScene");
+        gui = new dat.GUI();
 
-            gui.add(controls, "importScene");
-            
-            gui.add(controls, "addWall");
-            
-            projector = new THREE.Projector();
-            
-            
+        gui.add(controls, "exportScene");
+
+        gui.add(controls, "clearScene");
+
+        gui.add(controls, "importScene");
+                            
+        gui.add(controls, "addWall");
+                            
+        projector = new THREE.Projector();
+                            
+                            
                     
                     
 } // end init
@@ -398,6 +569,8 @@ var init = function ()
                     
                 $( document ).ready( function() 
                     {
+						document.addEventListener( 'mousedown', onDocumentMouseDownGlobal, false );
+						
                         init();
 
                         animate();
