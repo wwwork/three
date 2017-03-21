@@ -12,6 +12,13 @@ scr : https://goo.gl/SBIVCc
 
 #linkz
 github.com/josdirksen/learning-threejs/blob/master/chapter-08/04-load-save-json-scene.html
- //var result = new THREE.ObjectExporter().parse( scene );
+
+//var result = new THREE.ObjectExporter().parse( scene );
+
 //ObjectLoader 
+
 //https://console.cloud.google.com/launcher/details/bitnami-launchpad/nodejs?project=threejsnode
+
+// var json = JSON.stringify(myObj.toJSON());
+
+note: Did'nt wrap the  function in method - that add the wals into the scene.
